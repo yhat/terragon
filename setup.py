@@ -6,15 +6,14 @@ required = []
 
 setup(
     name="terragon",
-    version="0.1.3",
+    version="0.1.4",
     author="Greg Lamp",
     author_email="greg@yhathq.com",
     url="https://github.com/yhat/terragon/",
     license="BSD",
     packages=find_packages(),
-    package_data={'': ['README.rst']},
     description="a better pickle",
-    long_description=open("README.rst").read(),
+    long_description="why is it so hard to reference a file in your setup.py?",
     install_requires=required,
 )
 
