@@ -1,4 +1,4 @@
-terragon
-========
+# terragon
+"Sub-fork" of the [`cloud`](https://pypi.python.org/pypi/cloud/2.3.1) package's 
+cloudpickle.
 
-A better pickle (fork of the python cloud package)
