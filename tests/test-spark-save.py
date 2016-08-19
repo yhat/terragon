@@ -1,6 +1,6 @@
 from pyspark import SparkContext
 from pyspark.mllib.recommendation import ALS
-import sparkle
+import terragon
 
 sc = SparkContext()
 
@@ -12,7 +12,7 @@ model = ALS.trainImplicit(ratings, 1, seed=10)
 model.predict(2, 2)
 
 
-stringified_spark_model = sparkle.save_spark_model(sc, model)
+stringified_spark_model = terragon.dumps_spark_to_base64(sc, model)
 
 with open("/tmp/test.sparkle", "wb") as f:
     f.write(stringified_spark_model)
