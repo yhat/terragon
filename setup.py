@@ -6,7 +6,7 @@ required = []
 
 setup(
     name="terragon",
-    version="0.1.4",
+    version="0.2.0",
     author="Greg Lamp",
     author_email="greg@yhathq.com",
     url="https://github.com/yhat/terragon/",
