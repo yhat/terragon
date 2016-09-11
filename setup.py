@@ -6,7 +6,7 @@ required = []
 
 setup(
     name="terragon",
-    version="0.2.0",
+    version="0.2.1",
     author="Greg Lamp",
     author_email="greg@yhathq.com",
     url="https://github.com/yhat/terragon/",
@@ -16,4 +16,3 @@ setup(
     long_description="why is it so hard to reference a file in your setup.py?",
     install_requires=required,
 )
-
