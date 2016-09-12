@@ -33,17 +33,19 @@ def _find_file(name, path):
             return os.path.join(root, name)
 
 def load_tensorflow_graph(s):
-    from tensorflow.contrib.session_bundle import session_bundle
+    import tensorflow as tf
 
     dest = tempfile.mkdtemp(suffix="_yhat")
     s = base64.decodestring(s)
     f = StringIO.StringIO(s)
     tar = tarfile.open(mode="r:gz", fileobj=f)
     tar.extractall(path=dest)
-    graphdir = os.path.dirname(_find_file("export.meta", dest))
-    graphdirectory = os.path.join(dest, graphdir)
-
-    return session_bundle.load_session_bundle_from_path(graphdirectory)
+    metafile = _find_file("export.meta", dest)
+    saver = tf.train.import_meta_graph(metafile)
+    export = os.path.join(os.path.dirname(metafile), "export-00000-of-00001")
+    sess = tf.InteractiveSession()
+    saver.restore(sess, export)
+    return sess, None
 
 def save_spark_model(sc, model):
     f = tempfile.mkdtemp(suffix="_yhat")
