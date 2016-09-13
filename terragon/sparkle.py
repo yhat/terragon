@@ -1,13 +1,13 @@
 import os
 import tarfile
-import StringIO
+import io
 import base64
 import tempfile
 import importlib
 import shutil
 
 def make_tarfile_string(source_dir):
-    f = StringIO.StringIO()
+    f = io.StringIO()
     with tarfile.open(mode="w:gz", fileobj=f) as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir))
     archive = f.getvalue()
@@ -37,7 +37,7 @@ def load_tensorflow_graph(s):
 
     dest = tempfile.mkdtemp(suffix="_yhat")
     s = base64.decodestring(s)
-    f = StringIO.StringIO(s)
+    f = io.StringIO(s)
     tar = tarfile.open(mode="r:gz", fileobj=f)
     tar.extractall(path=dest)
     graphdir = os.path.dirname(_find_file("export.meta", dest))
@@ -57,7 +57,7 @@ def load_spark_model(sc, s):
     dest = tempfile.mkdtemp(suffix="_yhat")
     lib, classname, s = s.split("|")
     s = base64.decodestring(s)
-    f = StringIO.StringIO(s)
+    f = io.StringIO(s)
     tar = tarfile.open(mode="r:gz", fileobj=f)
     tar.extractall(path=dest)
     modeldir = os.listdir(dest)[0] # i know, i know. shame on me.

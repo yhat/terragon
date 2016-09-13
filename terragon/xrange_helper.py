@@ -74,7 +74,7 @@ def decode_maybe_xrange(obj, allowLists = True):
     Else return object"""
     if isinstance(obj, list):
         if len(obj) == 4 and obj[0] == 'xrange':  #an xrange object
-            return xrange(obj[1], obj[1] + obj[2]*obj[3], obj[2])            
+            return range(obj[1], obj[1] + obj[2]*obj[3], obj[2])            
         elif allowLists: #decode internal xranges
             return [decode_maybe_xrange(elm, allowLists = False) for elm in obj]
     return obj
@@ -163,7 +163,7 @@ def filter_xrange_list(func, xrange_list):
     
     outList = PiecewiseXrange()
     for elm in xrange_list:
-        if isinstance(elm, (int, long)):  #elm is 
+        if isinstance(elm, int):  #elm is 
             if func(elm):
                 outList.append(elm)
                 single_range = 0 #individual elements present - so not single xrange
@@ -180,7 +180,7 @@ def filter_xrange_list(func, xrange_list):
                             outList.append(basenum)
                             single_range = 0
                         else:
-                            outList.append(xrange(basenum, num, step))
+                            outList.append(range(basenum, num, step))
                             single_range-=1
                             no_xrange_output = False
                         basenum = None
@@ -190,7 +190,7 @@ def filter_xrange_list(func, xrange_list):
                     outList.append(basenum)
                     single_range = 0
                 else:
-                    outList.append(xrange(basenum, num, step))
+                    outList.append(range(basenum, num, step))
                     single_range-=1
                     no_xrange_output = False
         else:
@@ -223,7 +223,7 @@ def iterate_xrange_limit(pwx, limit):
     outlist = []
     cnt = 0 #number of items appended
     for xr in pwx:
-        if isinstance(xr, (int, long)):
+        if isinstance(xr, int):
             outlist.append(xr)
             cnt+=1
             if cnt >= limit:
@@ -240,12 +240,12 @@ def iterate_xrange_limit(pwx, limit):
                     allowed = limit - cnt
                     start, step, xl_len = xrange_params(xr)
                     breakpoint = start+ step*allowed
-                    to_app = xrange(start, breakpoint, step)
+                    to_app = range(start, breakpoint, step)
                     outlist.append(to_app)
                     yield outlist
                     outlist = []
                     cnt=0
-                    xr = xrange(breakpoint,breakpoint+(xl_len-allowed)*step, step)
+                    xr = range(breakpoint,breakpoint+(xl_len-allowed)*step, step)
             if len(outlist) >= limit:
                 yield outlist
                 outlist = []  
