@@ -6,6 +6,11 @@ import tempfile
 import importlib
 import shutil
 
+def _find_file(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            return os.path.join(root, name)
+
 def make_tarfile_string(source_dir):
     f = StringIO.StringIO()
     with tarfile.open(mode="w:gz", fileobj=f) as tar:
@@ -15,22 +20,14 @@ def make_tarfile_string(source_dir):
 
 def save_tensorflow_graph(sess):
     import tensorflow as tf
-    from tensorflow.contrib.session_bundle import exporter
 
-    f = tempfile.mkdtemp(suffix="_yhat")
-    saver = tf.train.Saver(sharded=True)
-    model_exporter = exporter.Exporter(saver)
-    model_exporter.init(sess.graph.as_graph_def())
-    model_exporter.export(f, tf.constant(1), sess)
-
-    b64_tarfile = make_tarfile_string(f)
-    shutil.rmtree(f)
+    tempdir = tempfile.mkdtemp(suffix="_yhat")
+    checkpoint_dest = os.path.join(tempdir, "session.checkpoint")
+    saver = tf.train.Saver()
+    saver.save(sess, checkpoint_dest)
+    b64_tarfile = make_tarfile_string(checkpoint_dest)
+    shutil.rmtree(tempdir)
     return b64_tarfile
-
-def _find_file(name, path):
-    for root, dirs, files in os.walk(path):
-        if name in files:
-            return os.path.join(root, name)
 
 def load_tensorflow_graph(s):
     import tensorflow as tf
@@ -40,11 +37,10 @@ def load_tensorflow_graph(s):
     f = StringIO.StringIO(s)
     tar = tarfile.open(mode="r:gz", fileobj=f)
     tar.extractall(path=dest)
-    metafile = _find_file("export.meta", dest)
-    saver = tf.train.import_meta_graph(metafile)
-    export = os.path.join(os.path.dirname(metafile), "export-00000-of-00001")
+    checkpoint_file = _find_file("session.checkpoint", dest)
     sess = tf.InteractiveSession()
-    saver.restore(sess, export)
+    saver = tf.train.Saver()
+    saver.restore(sess, checkpoint_file)
     return sess, None
 
 def save_spark_model(sc, model):
