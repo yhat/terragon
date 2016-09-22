@@ -27,7 +27,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
-
+from __future__ import print_function
 
 import operator
 import os
@@ -38,7 +38,10 @@ import base64
 import types
 from functools import partial
 import itertools
-from copyreg import _extension_registry, _inverted_registry, _extension_cache
+try:
+    from copy_reg import _extension_registry, _inverted_registry, _extension_cache
+except ImportError:
+    from copyreg import _extension_registry, _inverted_registry, _extension_cache
 import new
 import dis
 import traceback
@@ -71,9 +74,12 @@ else:
 
 
 try:
-    from io import StringIO
+    from cStringIO import StringIO
 except ImportError:
-    from io import StringIO
+    try:
+        from StringIO import StringIO
+    except ImportError:
+        from io import StringIO
 
 # helpers
 def islambda(func):
