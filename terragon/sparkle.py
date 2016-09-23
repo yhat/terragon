@@ -1,10 +1,12 @@
-import os
-import tarfile
-import io
 import base64
-import tempfile
-import importlib
+import os
 import shutil
+import tarfile
+import tempfile
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 def _find_file(name, path):
     for root, dirs, files in os.walk(path):
@@ -12,7 +14,7 @@ def _find_file(name, path):
             return os.path.join(root, name)
 
 def make_tarfile_string(source_dir):
-    f = io.StringIO()
+    f = StringIO()
     with tarfile.open(mode="w:gz", fileobj=f) as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir))
     archive = f.getvalue()
@@ -34,7 +36,7 @@ def load_tensorflow_graph(s):
 
     dest = tempfile.mkdtemp(suffix="_yhat")
     s = base64.decodestring(s)
-    f = io.StringIO(s)
+    f = StringIO(s)
     tar = tarfile.open(mode="r:gz", fileobj=f)
     tar.extractall(path=dest)
     checkpoint_file = _find_file("session.checkpoint", dest)
@@ -55,7 +57,7 @@ def load_spark_model(sc, s):
     dest = tempfile.mkdtemp(suffix="_yhat")
     lib, classname, s = s.split("|")
     s = base64.decodestring(s)
-    f = io.StringIO(s)
+    f = StringIO(s)
     tar = tarfile.open(mode="r:gz", fileobj=f)
     tar.extractall(path=dest)
     modeldir = os.listdir(dest)[0] # i know, i know. shame on me.
