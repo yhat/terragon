@@ -3,10 +3,7 @@ import os
 import shutil
 import tarfile
 import tempfile
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import BytesIO
 
 def _find_file(name, path):
     for root, dirs, files in os.walk(path):
@@ -14,10 +11,12 @@ def _find_file(name, path):
             return os.path.join(root, name)
 
 def make_tarfile_string(source_dir):
-    f = StringIO()
+    f = open("/tmp/faketar.tar.gz", "wb")
+    print(f)
     with tarfile.open(mode="w:gz", fileobj=f) as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir))
-    archive = f.getvalue()
+    f.close()
+    archive = open("/tmp/faketar.tar.gz", "rb").read()
     return base64.encodestring(archive)
 
 def save_tensorflow_graph(sess):
@@ -36,7 +35,7 @@ def load_tensorflow_graph(s):
 
     dest = tempfile.mkdtemp(suffix="_yhat")
     s = base64.decodestring(s)
-    f = StringIO(s)
+    f = BytesIO(s)
     tar = tarfile.open(mode="r:gz", fileobj=f)
     tar.extractall(path=dest)
     checkpoint_file = _find_file("session.checkpoint", dest)
@@ -48,20 +47,22 @@ def load_tensorflow_graph(s):
 def save_spark_model(sc, model):
     f = tempfile.mkdtemp(suffix="_yhat")
     model.save(sc, f)
-    b64_tarfile = make_tarfile_string(f)
+    b64_tarfile = make_tarfile_string(f).decode()
     b64_tarfile = "%s|%s|%s" % (model.__module__, model.__class__.__name__, b64_tarfile)
     shutil.rmtree(f)
     return b64_tarfile
 
 def load_spark_model(sc, s):
     dest = tempfile.mkdtemp(suffix="_yhat")
-    lib, classname, s = s.split("|")
+    lib, classname, s = s.split(b"|")
+    # Sometimes the padding is wrong on this, so fix it here
+    s += b'=' * (-len(s) % 4)
     s = base64.decodestring(s)
-    f = StringIO(s)
+    f = BytesIO(s)
     tar = tarfile.open(mode="r:gz", fileobj=f)
     tar.extractall(path=dest)
     modeldir = os.listdir(dest)[0] # i know, i know. shame on me.
     modeldirectory = os.path.join(dest, modeldir)
     # i see you judging me
-    exec("from %s import %s" % (lib, classname))
-    return eval("%s.load(sc, '%s')" % (classname, modeldirectory))
+    exec("from %s import %s" % (lib.decode(), classname.decode()))
+    return eval("%s.load(sc, '%s')" % (classname.decode(), modeldirectory))
