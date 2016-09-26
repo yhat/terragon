@@ -54,17 +54,16 @@ def save_spark_model(sc, model):
     model.save(sc, f)
     b64_tarfile = make_tarfile_string(f).decode()
     b64_tarfile = "%s|%s|%s" % (model.__module__, model.__class__.__name__, b64_tarfile)
-    b64_bytes = b64_tarfile.encode()
     shutil.rmtree(f)
-    return b64_bytes
+    return b64_tarfile
 
 def load_spark_model(sc, s):
     """
-    load_spark_model takes the base64 encoded string generated with
+    load_spark_model takes the base64 encoded bytes generated with
     save_spark_model and loads it into the current python session.
     """
     # if we don't have bytes already, try to convert
-    if type(s) is not bytes:
+    if not isinstance(s, bytes):
         try:
             s = s.encode()
         except Exception:
