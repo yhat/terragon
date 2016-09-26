@@ -45,14 +45,30 @@ def load_tensorflow_graph(s):
     return sess, None
 
 def save_spark_model(sc, model):
+    """
+    save_spark_model will take a spark context and a spark model, and return a
+    base64 encoded string containing the model name, model class, and a tar
+    containing the spark model
+    """
     f = tempfile.mkdtemp(suffix="_yhat")
     model.save(sc, f)
     b64_tarfile = make_tarfile_string(f).decode()
     b64_tarfile = "%s|%s|%s" % (model.__module__, model.__class__.__name__, b64_tarfile)
+    b64_bytes = b64_tarfile.encode()
     shutil.rmtree(f)
-    return b64_tarfile
+    return b64_bytes
 
 def load_spark_model(sc, s):
+    """
+    load_spark_model takes the base64 encoded string generated with
+    save_spark_model and loads it into the current python session.
+    """
+    # if we don't have bytes already, try to convert
+    if type(s) is not bytes:
+        try:
+            s = s.encode()
+        except Exception:
+            print("Please supply a file opened in binary mode, open(model, 'rb')")
     dest = tempfile.mkdtemp(suffix="_yhat")
     lib, classname, s = s.split(b"|")
     # Sometimes the padding is wrong on this, so fix it here
