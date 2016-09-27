@@ -12,7 +12,6 @@ def _find_file(name, path):
 
 def make_tarfile_string(source_dir):
     f = open("/tmp/faketar.tar.gz", "wb")
-    print(f)
     with tarfile.open(mode="w:gz", fileobj=f) as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir))
     f.close()
@@ -20,19 +19,32 @@ def make_tarfile_string(source_dir):
     return base64.encodestring(archive)
 
 def save_tensorflow_graph(sess):
+    """
+    save_tensorflow_graph will save a tensorflow graph as a base64 encoded tar
+    file string and return it
+    """
     import tensorflow as tf
 
     tempdir = tempfile.mkdtemp(suffix="_yhat")
     checkpoint_dest = os.path.join(tempdir, "session.checkpoint")
     saver = tf.train.Saver()
     saver.save(sess, checkpoint_dest)
-    b64_tarfile = make_tarfile_string(checkpoint_dest)
+    b64_tarfile = make_tarfile_string(checkpoint_dest).decode()
     shutil.rmtree(tempdir)
     return b64_tarfile
 
 def load_tensorflow_graph(s):
+    """
+    load_tensorflow_graph will load a tensorflow session from a base64 encoded
+    string
+    """
     import tensorflow as tf
-
+    # if we don't have bytes already, try to convert
+    if not isinstance(s, bytes):
+        try:
+            s = s.encode()
+        except Exception:
+            print("Please supply a file opened in binary mode, open(model, 'rb')")
     dest = tempfile.mkdtemp(suffix="_yhat")
     s = base64.decodestring(s)
     f = BytesIO(s)
