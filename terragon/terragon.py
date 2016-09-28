@@ -678,13 +678,16 @@ def loads_spark_from_base64(sc, s):
     return sparkle.load_spark_model(sc, s)
 
 def dumps_to_base64(obj, protocol=2):
-    return base64.encodestring(dumps(obj, protocol=protocol))
+    # b64encode will return bytes, so we want to convert this to a string
+    # here so we don't have to do it everywhere else
+    b64bytes = base64.b64encode(dumps(obj, protocol=protocol))
+    return b64bytes.decode()
 
 def loads(s):
     return pickle.loads(s)
 
 def loads_from_base64(s):
-    return loads(base64.decodestring(s))
+    return loads(base64.b64decode(s))
 
 #hack for __import__ not working as desired
 def subimport(name):
