@@ -93,3 +93,31 @@ def load_spark_model(sc, s):
     # i see you judging me
     exec("from %s import %s" % (lib.decode(), classname.decode()))
     return eval("%s.load(sc, '%s')" % (classname.decode(), modeldirectory))
+
+def save_pom_obj(obj):
+    """
+    save_pom_model will take a pomegranate object and serialize it to a base64
+    encoded string with it's classname so we can load it later.
+    """
+    import pomegranate
+    pomObjJson = obj.to_json()
+    objStr = "%s|%s" % (obj.__class__.__name__, pomObjJson)
+    b64bytes = base64.b64encode(objStr)
+    return b64bytes.decode()
+
+def load_pom_obj(s):
+    """
+    load_pom_obj will take a base64 encoded pomegranate object and it's classname
+    and return the loaded object
+    """
+    import pomegranate
+    # if we don't have bytes already, try to convert
+    if not isinstance(s, bytes):
+        try:
+            s = s.encode()
+        except Exception:
+            print("There was an issue loading the pomegranate object")
+    decodedObjClass = base64.b64decode(s)
+    classname, obj = decodedObjClass.split(b"|")
+    loadedObj = eval("pomegranate.%s.from_json(obj)" % classname )
+    return loadedObj
