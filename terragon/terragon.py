@@ -671,6 +671,12 @@ def dumps(obj, protocol=2):
 
     return file.getvalue()
 
+def dumps_pom_to_base64(obj):
+    return sparkle.save_pom_obj(obj)
+
+def load_pom_from_base64(s):
+    return sparkle.load_pom_obj(s)
+
 def dumps_spark_to_base64(sc, obj, protocol=2):
     return sparkle.save_spark_model(sc, obj)
 
